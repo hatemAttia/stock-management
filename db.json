@@ -1,0 +1,268 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Law7a",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 2,
+      "name": "Coupe angle bleu",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 3,
+      "name": "Lampe veillsuse 2",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 4,
+      "name": "Correcteur sbo3",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 5,
+      "name": "Support tel vespa",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 6,
+      "name": "Support tel karhba",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 7,
+      "name": "Suppor bros a dent",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 8,
+      "name": "Tarmoz",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 9,
+      "name": "Coupe angle mini",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 10,
+      "name": "Falfoula",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 11,
+      "name": "مساحة بلار",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 12,
+      "name": "torche camp mini",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 13,
+      "name": "Torche green",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 14,
+      "name": "Cable data",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 15,
+      "name": "Hachoir mini",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 16,
+      "name": "Respirateur G",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 17,
+      "name": "Fayouz mdawra",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 18,
+      "name": "Suport tel magnet",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 19,
+      "name": "MP3 car",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 20,
+      "name": "Plack 750",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 21,
+      "name": "Wachwacha mini",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 22,
+      "name": "Cole",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 23,
+      "name": "Support tel table",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 24,
+      "name": "Stitch",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 25,
+      "name": "Respirateur mimi",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 26,
+      "name": "Ma3oun",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 27,
+      "name": "S7eba sayara",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 28,
+      "name": "Makina 7jema 3en1",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 29,
+      "name": "Makina 7jema 1",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 30,
+      "name": "Lampe camp",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 31,
+      "name": "Tal9im",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 32,
+      "name": "Mizen",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 33,
+      "name": "Torche gogle5",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 34,
+      "name": "Gants",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 35,
+      "name": "SUPPORT TOILLET 3 ETAGE ACH58-3/17",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 36,
+      "name": "Meroir led",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 37,
+      "name": "HALLUX VALGUS ACH-55-5/6 correckon pied",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 38,
+      "name": "SHARPNER ACH44-33/4.5",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 39,
+      "name": "CUP SOAP BOX-ACHF10-18/65 sabael",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 40,
+      "name": "SUPPORT MANCHef",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    },
+    {
+      "id": 41,
+      "name": "veilleuse",
+      "unit": "unit",
+      "created_at": "2026-05-01"
+    }
+  ],
+  "purchases": [
+    {
+      "id": 1,
+      "product_id": 14,
+      "quantity": 2,
+      "unit_cost": 5,
+      "total_cost": 10,
+      "supplier": "",
+      "date": "2026-05-01",
+      "created_at": "2026-05-01T16:29:12.005Z"
+    }
+  ],
+  "sales": [],
+  "_seq": {
+    "products": 41,
+    "purchases": 1,
+    "sales": 0
+  }
+}

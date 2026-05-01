@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StockPro – Stock & Sales Management</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  </head>
+  <body>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">📦</span>
+        <span class="brand-name">StockPro</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-page="dashboard">
+          <span class="nav-icon">🏠</span><span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-page="products">
+          <span class="nav-icon">🏷️</span><span>Products</span>
+        </a>
+        <a href="#" class="nav-item" data-page="purchases">
+          <span class="nav-icon">🛒</span><span>Purchases</span>
+        </a>
+        <a href="#" class="nav-item" data-page="sales">
+          <span class="nav-icon">💰</span><span>Sales</span>
+        </a>
+        <a href="#" class="nav-item" data-page="stock">
+          <span class="nav-icon">📊</span><span>Stock</span>
+        </a>
+        <a href="#" class="nav-item" data-page="reports">
+          <span class="nav-icon">📈</span><span>Reports</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">v1.0.0</div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <button class="hamburger" id="hamburger">☰</button>
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+        <div class="topbar-right">
+          <span class="topbar-date" id="topbarDate"></span>
+        </div>
+      </header>
+
+      <main class="content" id="content">
+        <!-- ══════════════ DASHBOARD ══════════════ -->
+        <section class="page active" id="page-dashboard">
+          <div class="kpi-grid" id="kpiGrid"></div>
+
+          <div class="card-row">
+            <div class="card chart-card">
+              <div class="card-header">
+                <h2>Revenue – Last 14 Days</h2>
+              </div>
+              <canvas id="chartRevenue"></canvas>
+            </div>
+            <div class="card chart-card">
+              <div class="card-header">
+                <h2>Top Products by Revenue</h2>
+              </div>
+              <canvas id="chartTop"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h2>⚠️ Low Stock Alert</h2></div>
+            <div id="lowStockTable"></div>
+          </div>
+        </section>
+
+        <!-- ══════════════ PRODUCTS ══════════════ -->
+        <section class="page" id="page-products">
+          <div class="card">
+            <div class="card-header">
+              <h2>Add Product</h2>
+            </div>
+            <form class="form-inline" id="formProduct">
+              <div class="field">
+                <label>Product Name *</label>
+                <input type="text" id="pName" placeholder="e.g. Rice 50kg" required />
+              </div>
+              <div class="field">
+                <label>Unit</label>
+                <input type="text" id="pUnit" placeholder="kg / pcs / box…" value="unit" />
+              </div>
+              <button type="submit" class="btn btn-primary">➕ Add Product</button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h2>Product List</h2>
+              <input type="text" class="search-box" id="searchProduct" placeholder="🔍 Search…" />
+            </div>
+            <div class="table-wrap" id="productTable"></div>
+          </div>
+        </section>
+
+        <!-- ══════════════ PURCHASES ══════════════ -->
+        <section class="page" id="page-purchases">
+          <div class="card">
+            <div class="card-header"><h2>Declare a Purchase</h2></div>
+            <form class="form-grid" id="formPurchase">
+              <div class="field">
+                <label>Product *</label>
+                <select id="puProduct" required></select>
+              </div>
+              <div class="field">
+                <label>Date *</label>
+                <input type="date" id="puDate" required />
+              </div>
+              <div class="field">
+                <label>Quantity *</label>
+                <input type="number" id="puQty" min="0.01" step="any" placeholder="0" required />
+              </div>
+              <div class="field">
+                <label>Unit Cost *</label>
+                <input type="number" id="puCost" min="0" step="any" placeholder="0.00" required />
+              </div>
+              <div class="field">
+                <label>Supplier</label>
+                <input type="text" id="puSupplier" placeholder="optional" />
+              </div>
+              <div class="field field-total">
+                <label>Total Cost</label>
+                <div class="total-display" id="puTotal">0.00</div>
+              </div>
+              <button type="submit" class="btn btn-success span-full">🛒 Save Purchase</button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h2>Purchase History</h2>
+              <div class="filter-bar">
+                <input type="date" id="puFilterFrom" />
+                <span>→</span>
+                <input type="date" id="puFilterTo" />
+                <button class="btn btn-sm" onclick="loadPurchases()">Filter</button>
+              </div>
+            </div>
+            <div class="table-wrap" id="purchaseTable"></div>
+          </div>
+        </section>
+
+        <!-- ══════════════ SALES ══════════════ -->
+        <section class="page" id="page-sales">
+          <div class="card">
+            <div class="card-header"><h2>Declare a Sale</h2></div>
+            <form class="form-grid" id="formSale">
+              <div class="field">
+                <label>Product *</label>
+                <select id="saProduct" required></select>
+              </div>
+              <div class="field">
+                <label>Date *</label>
+                <input type="date" id="saDate" required />
+              </div>
+              <div class="field">
+                <label>Quantity *</label>
+                <input type="number" id="saQty" min="0.01" step="any" placeholder="0" required />
+              </div>
+              <div class="field">
+                <label>Unit Price *</label>
+                <input type="number" id="saPrice" min="0" step="any" placeholder="0.00" required />
+              </div>
+              <div class="field">
+                <label>Client</label>
+                <input type="text" id="saClient" placeholder="optional" />
+              </div>
+              <div class="field field-total">
+                <label>Total Revenue</label>
+                <div class="total-display" id="saTotal">0.00</div>
+              </div>
+              <button type="submit" class="btn btn-warning span-full">💰 Save Sale</button>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h2>Sales History</h2>
+              <div class="filter-bar">
+                <input type="date" id="saFilterFrom" />
+                <span>→</span>
+                <input type="date" id="saFilterTo" />
+                <button class="btn btn-sm" onclick="loadSales()">Filter</button>
+              </div>
+            </div>
+            <div class="table-wrap" id="saleTable"></div>
+          </div>
+        </section>
+
+        <!-- ══════════════ STOCK ══════════════ -->
+        <section class="page" id="page-stock">
+          <div class="card">
+            <div class="card-header">
+              <h2>Current Stock Levels</h2>
+              <input
+                type="text"
+                class="search-box"
+                id="searchStock"
+                placeholder="🔍 Search product…"
+              />
+            </div>
+            <div class="table-wrap" id="stockTable"></div>
+          </div>
+        </section>
+
+        <!-- ══════════════ REPORTS ══════════════ -->
+        <section class="page" id="page-reports">
+          <div class="card">
+            <div class="card-header">
+              <h2>Daily Sales Report</h2>
+              <div class="filter-bar">
+                <input type="date" id="rpFrom" />
+                <span>→</span>
+                <input type="date" id="rpTo" />
+                <button class="btn btn-sm" onclick="loadReports()">Generate</button>
+              </div>
+            </div>
+            <div class="table-wrap" id="reportTable"></div>
+          </div>
+          <div class="card chart-card">
+            <div class="card-header"><h2>Revenue vs Cost (daily)</h2></div>
+            <canvas id="chartReport"></canvas>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
