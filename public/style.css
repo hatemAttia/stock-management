@@ -427,6 +427,37 @@ thead th {
   color: var(--text-muted);
   white-space: nowrap;
 }
+thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-right: 28px;
+  transition: color 0.15s;
+}
+thead th.sortable:hover {
+  color: var(--text);
+}
+thead th.sortable::after {
+  content: "⇅";
+  position: absolute;
+  right: 10px;
+  font-size: 0.8rem;
+  opacity: 0.35;
+}
+thead th.sort-asc::after {
+  content: "▲";
+  opacity: 1;
+  color: var(--accent);
+}
+thead th.sort-desc::after {
+  content: "▼";
+  opacity: 1;
+  color: var(--accent);
+}
+thead th.sort-asc,
+thead th.sort-desc {
+  color: var(--accent);
+}
 tbody tr {
   border-top: 1px solid var(--border);
   transition: background 0.15s;

@@ -2,7 +2,7 @@
    StockPro  –  Main Application Logic
    ═══════════════════════════════════════════════════════════ */
 
-const API = "http://localhost:3000/api";
+const API = "/api";
 let products = [];
 let chartRevenue = null,
   chartTop = null,
@@ -31,6 +31,81 @@ function toast(msg, type = "success") {
 
 function emptyState(msg = "No data found") {
   return `<div class="empty"><div class="empty-icon">🗂️</div>${msg}</div>`;
+}
+
+/* ─── SORT ENGINE ───────────────────────────────────────── */
+// State: { wrapperId: { col, dir } }
+const _sortState = {};
+
+/**
+ * Make a table sortable.
+ * @param {string} wrapperId  - id of the .table-wrap div
+ * @param {Array}  data       - original data array
+ * @param {Array}  cols       - column definitions:
+ *   { key, label, render?, numeric?, nosort? }
+ *   render(row) → td innerHTML string
+ * @param {Function} footerFn - optional fn(data) → tfoot html string
+ */
+function makeSortableTable(wrapperId, data, cols, footerFn = null) {
+  const state = _sortState[wrapperId] || { col: null, dir: 1 };
+
+  function sort(colKey) {
+    if (state.col === colKey) {
+      state.dir = -state.dir;
+    } else {
+      state.col = colKey;
+      state.dir = 1;
+    }
+    _sortState[wrapperId] = state;
+    render();
+  }
+
+  function render() {
+    const el = document.getElementById(wrapperId);
+    let sorted = [...data];
+    if (state.col) {
+      sorted.sort((a, b) => {
+        let av = a[state.col],
+          bv = b[state.col];
+        if (av === undefined || av === null) av = "";
+        if (bv === undefined || bv === null) bv = "";
+        const numA = parseFloat(String(av).replace(/[^0-9.-]/g, ""));
+        const numB = parseFloat(String(bv).replace(/[^0-9.-]/g, ""));
+        if (!isNaN(numA) && !isNaN(numB)) return (numA - numB) * state.dir;
+        return String(av).localeCompare(String(bv)) * state.dir;
+      });
+    }
+
+    const theadCells = cols
+      .map((c) => {
+        if (c.nosort) return `<th>${c.label}</th>`;
+        const active = state.col === c.key;
+        const cls = active ? (state.dir === 1 ? "sort-asc" : "sort-desc") : "";
+        return `<th class="sortable ${cls}" onclick="(()=>{window._sortCb_${wrapperId}('${c.key}')})()">${c.label}</th>`;
+      })
+      .join("");
+
+    const tbodyRows = sorted
+      .map(
+        (row) =>
+          `<tr>${cols.map((c) => `<td>${c.render ? c.render(row) : (row[c.key] ?? "—")}</td>`).join("")}</tr>`,
+      )
+      .join("");
+
+    const tfoot = footerFn ? footerFn(sorted) : "";
+
+    el.innerHTML = `<table>
+      <thead><tr>${theadCells}</tr></thead>
+      <tbody>${tbodyRows}</tbody>
+      ${tfoot}
+    </table>`;
+
+    // register callback
+    window[`_sortCb_${wrapperId}`] = sort;
+  }
+
+  window[`_sortCb_${wrapperId}`] = sort;
+  render();
 }
 
 /* ─── NAVIGATION ────────────────────────────────────────── */
@@ -91,24 +166,23 @@ function renderProductTable(data) {
     el.innerHTML = emptyState("No products yet.");
     return;
   }
-  el.innerHTML = `<table>
-    <thead><tr>
-      <th>#</th><th>Name</th><th>Unit</th><th>Created</th><th></th>
-    </tr></thead>
-    <tbody>
-      ${data
-        .map(
-          (p) => `<tr>
-        <td><span class="badge badge-green">${p.id}</span></td>
-        <td><strong>${p.name}</strong></td>
-        <td>${p.unit}</td>
-        <td>${p.created_at ? p.created_at.slice(0, 10) : ""}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})">🗑</button></td>
-      </tr>`,
-        )
-        .join("")}
-    </tbody>
-  </table>`;
+  makeSortableTable("productTable", data, [
+    { key: "id", label: "#", render: (r) => `<span class="badge badge-green">${r.id}</span>` },
+    { key: "name", label: "Name", render: (r) => `<strong>${r.name}</strong>` },
+    { key: "unit", label: "Unit" },
+    {
+      key: "created_at",
+      label: "Created",
+      render: (r) => (r.created_at ? r.created_at.slice(0, 10) : ""),
+    },
+    {
+      key: "_del",
+      label: "",
+      nosort: true,
+      render: (r) =>
+        `<button class="btn btn-danger btn-sm" onclick="deleteProduct(${r.id})">🗑</button>`,
+    },
+  ]);
 }
 
 document.getElementById("searchProduct").addEventListener("input", function () {
@@ -178,33 +252,42 @@ function renderPurchaseTable(data) {
     el.innerHTML = emptyState("No purchases in this period.");
     return;
   }
-  const total = data.reduce((s, r) => s + r.total_cost, 0);
-  el.innerHTML = `<table>
-    <thead><tr>
-      <th>Date</th><th>Product</th><th>Qty</th><th>Unit Cost</th>
-      <th>Total Cost</th><th>Supplier</th><th></th>
-    </tr></thead>
-    <tbody>
-      ${data
-        .map(
-          (r) => `<tr>
-        <td>${r.date}</td>
-        <td><strong>${r.product_name}</strong></td>
-        <td>${r.quantity} ${r.unit}</td>
-        <td>${fmt(r.unit_cost)}</td>
-        <td><span class="badge badge-red">${fmt(r.total_cost)}</span></td>
-        <td>${r.supplier || "—"}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deletePurchase(${r.id})">🗑</button></td>
-      </tr>`,
-        )
-        .join("")}
-    </tbody>
-    <tfoot><tr style="background:var(--surface2)">
+  const footer = (sorted) => {
+    const total = sorted.reduce((s, r) => s + r.total_cost, 0);
+    return `<tfoot><tr style="background:var(--surface2)">
       <td colspan="4" style="padding:10px 16px;font-weight:700">Total</td>
       <td style="padding:10px 16px;font-weight:700;color:var(--danger)">${fmt(total)}</td>
       <td colspan="2"></td>
-    </tr></tfoot>
-  </table>`;
+    </tr></tfoot>`;
+  };
+  makeSortableTable(
+    "purchaseTable",
+    data,
+    [
+      { key: "date", label: "Date" },
+      {
+        key: "product_name",
+        label: "Product",
+        render: (r) => `<strong>${r.product_name}</strong>`,
+      },
+      { key: "quantity", label: "Qty", render: (r) => `${r.quantity} ${r.unit}`, numeric: true },
+      { key: "unit_cost", label: "Unit Cost", render: (r) => fmt(r.unit_cost) },
+      {
+        key: "total_cost",
+        label: "Total Cost",
+        render: (r) => `<span class="badge badge-red">${fmt(r.total_cost)}</span>`,
+      },
+      { key: "supplier", label: "Supplier", render: (r) => r.supplier || "—" },
+      {
+        key: "_del",
+        label: "",
+        nosort: true,
+        render: (r) =>
+          `<button class="btn btn-danger btn-sm" onclick="deletePurchase(${r.id})">🗑</button>`,
+      },
+    ],
+    footer,
+  );
 }
 
 // Live total calculation
@@ -268,33 +351,42 @@ function renderSaleTable(data) {
     el.innerHTML = emptyState("No sales in this period.");
     return;
   }
-  const total = data.reduce((s, r) => s + r.total_price, 0);
-  el.innerHTML = `<table>
-    <thead><tr>
-      <th>Date</th><th>Product</th><th>Qty</th><th>Unit Price</th>
-      <th>Revenue</th><th>Client</th><th></th>
-    </tr></thead>
-    <tbody>
-      ${data
-        .map(
-          (r) => `<tr>
-        <td>${r.date}</td>
-        <td><strong>${r.product_name}</strong></td>
-        <td>${r.quantity} ${r.unit}</td>
-        <td>${fmt(r.unit_price)}</td>
-        <td><span class="badge badge-green">${fmt(r.total_price)}</span></td>
-        <td>${r.client || "—"}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteSale(${r.id})">🗑</button></td>
-      </tr>`,
-        )
-        .join("")}
-    </tbody>
-    <tfoot><tr style="background:var(--surface2)">
+  const footer = (sorted) => {
+    const total = sorted.reduce((s, r) => s + r.total_price, 0);
+    return `<tfoot><tr style="background:var(--surface2)">
       <td colspan="4" style="padding:10px 16px;font-weight:700">Total</td>
       <td style="padding:10px 16px;font-weight:700;color:var(--success)">${fmt(total)}</td>
       <td colspan="2"></td>
-    </tr></tfoot>
-  </table>`;
+    </tr></tfoot>`;
+  };
+  makeSortableTable(
+    "saleTable",
+    data,
+    [
+      { key: "date", label: "Date" },
+      {
+        key: "product_name",
+        label: "Product",
+        render: (r) => `<strong>${r.product_name}</strong>`,
+      },
+      { key: "quantity", label: "Qty", render: (r) => `${r.quantity} ${r.unit}` },
+      { key: "unit_price", label: "Unit Price", render: (r) => fmt(r.unit_price) },
+      {
+        key: "total_price",
+        label: "Revenue",
+        render: (r) => `<span class="badge badge-green">${fmt(r.total_price)}</span>`,
+      },
+      { key: "client", label: "Client", render: (r) => r.client || "—" },
+      {
+        key: "_del",
+        label: "",
+        nosort: true,
+        render: (r) =>
+          `<button class="btn btn-danger btn-sm" onclick="deleteSale(${r.id})">🗑</button>`,
+      },
+    ],
+    footer,
+  );
 }
 
 ["saQty", "saPrice"].forEach((id) => {
@@ -348,40 +440,42 @@ function renderStockTable(data) {
     el.innerHTML = emptyState("No stock data.");
     return;
   }
-  el.innerHTML = `<table>
-    <thead><tr>
-      <th>Product</th><th>Unit</th><th>Purchased</th><th>Sold</th>
-      <th>Remaining</th><th>Total Cost</th><th>Status</th>
-    </tr></thead>
-    <tbody>
-      ${data
-        .map((r) => {
-          const pct = r.total_purchased > 0 ? (r.total_sold / r.total_purchased) * 100 : 0;
-          const status =
-            r.stock_remaining <= 0
-              ? "badge-red"
-              : r.stock_remaining < 5
-                ? "badge-yellow"
-                : "badge-green";
-          const statusText =
-            r.stock_remaining <= 0
-              ? "Out of stock"
-              : r.stock_remaining < 5
-                ? "Low stock"
-                : "In stock";
-          return `<tr>
-          <td><strong>${r.name}</strong></td>
-          <td>${r.unit}</td>
-          <td>${r.total_purchased}</td>
-          <td>${r.total_sold}</td>
-          <td><strong>${r.stock_remaining}</strong></td>
-          <td>${fmt(r.total_cost_purchased)}</td>
-          <td><span class="badge ${status}">${statusText}</span></td>
-        </tr>`;
-        })
-        .join("")}
-    </tbody>
-  </table>`;
+  makeSortableTable("stockTable", data, [
+    { key: "name", label: "Product", render: (r) => `<strong>${r.name}</strong>` },
+    { key: "unit", label: "Unit" },
+    { key: "total_purchased", label: "Purchased" },
+    { key: "total_sold", label: "Sold" },
+    {
+      key: "stock_remaining",
+      label: "Remaining",
+      render: (r) => `<strong>${r.stock_remaining}</strong>`,
+    },
+    {
+      key: "total_cost_purchased",
+      label: "Total Cost",
+      render: (r) => fmt(r.total_cost_purchased),
+    },
+    {
+      key: "stock_remaining",
+      label: "Status",
+      nosort: true,
+      render: (r) => {
+        const cls =
+          r.stock_remaining <= 0
+            ? "badge-red"
+            : r.stock_remaining < 5
+              ? "badge-yellow"
+              : "badge-green";
+        const text =
+          r.stock_remaining <= 0
+            ? "Out of stock"
+            : r.stock_remaining < 5
+              ? "Low stock"
+              : "In stock";
+        return `<span class="badge ${cls}">${text}</span>`;
+      },
+    },
+  ]);
 }
 
 /* ─── DASHBOARD ─────────────────────────────────────────── */
@@ -493,40 +587,51 @@ function renderReportTable(daily, costMap) {
     return;
   }
 
-  const totalRev = daily.reduce((s, r) => s + r.revenue, 0);
-  const totalUnits = daily.reduce((s, r) => s + r.units_sold, 0);
-  const allCosts = Object.values(costMap).reduce((a, b) => a + b, 0);
+  // Enrich data with cost & profit so sort engine can use them
+  const enriched = daily.map((r) => {
+    const cost = costMap[r.date] || 0;
+    return { ...r, cost, profit: r.revenue - cost };
+  });
 
-  el.innerHTML = `<table>
-    <thead><tr>
-      <th>Date</th><th>Transactions</th><th>Units Sold</th>
-      <th>Revenue</th><th>Cost (purchases)</th><th>Profit</th>
-    </tr></thead>
-    <tbody>
-      ${daily
-        .map((r) => {
-          const cost = costMap[r.date] || 0;
-          const profit = r.revenue - cost;
-          return `<tr>
-          <td><strong>${r.date}</strong></td>
-          <td>${r.transactions}</td>
-          <td>${r.units_sold}</td>
-          <td style="color:var(--success)">${fmt(r.revenue)}</td>
-          <td style="color:var(--danger)">${fmt(cost)}</td>
-          <td style="color:${profit >= 0 ? "var(--success)" : "var(--danger)"};font-weight:700">${fmt(profit)}</td>
-        </tr>`;
-        })
-        .join("")}
-    </tbody>
-    <tfoot><tr style="background:var(--surface2);font-weight:700">
-      <td style="padding:10px 16px">TOTAL</td>
-      <td></td>
-      <td style="padding:10px 16px">${totalUnits}</td>
-      <td style="padding:10px 16px;color:var(--success)">${fmt(totalRev)}</td>
-      <td style="padding:10px 16px;color:var(--danger)">${fmt(allCosts)}</td>
-      <td style="padding:10px 16px;color:${totalRev - allCosts >= 0 ? "var(--success)" : "var(--danger)"}">${fmt(totalRev - allCosts)}</td>
-    </tr></tfoot>
-  </table>`;
+  const totalRev = enriched.reduce((s, r) => s + r.revenue, 0);
+  const totalUnits = enriched.reduce((s, r) => s + r.units_sold, 0);
+  const allCosts = enriched.reduce((s, r) => s + r.cost, 0);
+
+  const footer = () => `<tfoot><tr style="background:var(--surface2);font-weight:700">
+    <td style="padding:10px 16px">TOTAL</td>
+    <td></td>
+    <td style="padding:10px 16px">${totalUnits}</td>
+    <td style="padding:10px 16px;color:var(--success)">${fmt(totalRev)}</td>
+    <td style="padding:10px 16px;color:var(--danger)">${fmt(allCosts)}</td>
+    <td style="padding:10px 16px;color:${totalRev - allCosts >= 0 ? "var(--success)" : "var(--danger)"}">${fmt(totalRev - allCosts)}</td>
+  </tr></tfoot>`;
+
+  makeSortableTable(
+    "reportTable",
+    enriched,
+    [
+      { key: "date", label: "Date", render: (r) => `<strong>${r.date}</strong>` },
+      { key: "transactions", label: "Transactions" },
+      { key: "units_sold", label: "Units Sold" },
+      {
+        key: "revenue",
+        label: "Revenue",
+        render: (r) => `<span style="color:var(--success)">${fmt(r.revenue)}</span>`,
+      },
+      {
+        key: "cost",
+        label: "Cost",
+        render: (r) => `<span style="color:var(--danger)">${fmt(r.cost)}</span>`,
+      },
+      {
+        key: "profit",
+        label: "Profit",
+        render: (r) =>
+          `<span style="color:${r.profit >= 0 ? "var(--success)" : "var(--danger)"};font-weight:700">${fmt(r.profit)}</span>`,
+      },
+    ],
+    footer,
+  );
 }
 
 /* ─── CHARTS ────────────────────────────────────────────── */
