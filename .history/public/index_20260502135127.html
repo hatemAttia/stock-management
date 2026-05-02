@@ -141,9 +141,7 @@
                 <span>→</span>
                 <input type="date" id="puFilterTo" />
                 <button class="btn btn-sm" onclick="loadPurchases()">Filter</button>
-                <button class="btn btn-sm btn-excel" onclick="exportPurchases()">
-                  ⬇️ Export Excel
-                </button>
+                <button class="btn btn-sm btn-excel" onclick="exportPurchases()">⬇️ Export Excel</button>
               </div>
             </div>
             <div class="table-wrap" id="purchaseTable"></div>
@@ -151,23 +149,12 @@
           <div class="card">
             <div class="card-header"><h2>📥 Import Purchases from Excel</h2></div>
             <div class="import-zone">
-              <p class="import-hint">
-                Columns required: <code>product_name</code>, <code>date</code> (YYYY-MM-DD),
-                <code>quantity</code>, <code>unit_cost</code>, <code>supplier</code> (optional)
-              </p>
+              <p class="import-hint">Columns required: <code>product_name</code>, <code>date</code> (YYYY-MM-DD), <code>quantity</code>, <code>unit_cost</code>, <code>supplier</code> (optional)</p>
               <div class="import-actions">
-                <button class="btn btn-sm" onclick="downloadPurchaseTemplate()">
-                  📄 Download Template
-                </button>
+                <button class="btn btn-sm" onclick="downloadPurchaseTemplate()">📄 Download Template</button>
                 <label class="btn btn-sm btn-excel import-label">
                   📂 Choose Excel File
-                  <input
-                    type="file"
-                    id="importPurchaseFile"
-                    accept=".xlsx,.xls"
-                    style="display: none"
-                    onchange="importPurchases(this)"
-                  />
+                  <input type="file" id="importPurchaseFile" accept=".xlsx,.xls" style="display:none" onchange="importPurchases(this)" />
                 </label>
               </div>
               <div id="importPurchaseResult"></div>
@@ -215,9 +202,7 @@
                 <span>→</span>
                 <input type="date" id="saFilterTo" />
                 <button class="btn btn-sm" onclick="loadSales()">Filter</button>
-                <button class="btn btn-sm btn-excel" onclick="exportSales()">
-                  ⬇️ Export Excel
-                </button>
+                <button class="btn btn-sm btn-excel" onclick="exportSales()">⬇️ Export Excel</button>
               </div>
             </div>
             <div class="table-wrap" id="saleTable"></div>
@@ -225,23 +210,12 @@
           <div class="card">
             <div class="card-header"><h2>📥 Import Sales from Excel</h2></div>
             <div class="import-zone">
-              <p class="import-hint">
-                Columns required: <code>product_name</code>, <code>date</code> (YYYY-MM-DD),
-                <code>quantity</code>, <code>unit_price</code>, <code>client</code> (optional)
-              </p>
+              <p class="import-hint">Columns required: <code>product_name</code>, <code>date</code> (YYYY-MM-DD), <code>quantity</code>, <code>unit_price</code>, <code>client</code> (optional)</p>
               <div class="import-actions">
-                <button class="btn btn-sm" onclick="downloadSaleTemplate()">
-                  📄 Download Template
-                </button>
+                <button class="btn btn-sm" onclick="downloadSaleTemplate()">📄 Download Template</button>
                 <label class="btn btn-sm btn-excel import-label">
                   📂 Choose Excel File
-                  <input
-                    type="file"
-                    id="importSaleFile"
-                    accept=".xlsx,.xls"
-                    style="display: none"
-                    onchange="importSales(this)"
-                  />
+                  <input type="file" id="importSaleFile" accept=".xlsx,.xls" style="display:none" onchange="importSales(this)" />
                 </label>
               </div>
               <div id="importSaleResult"></div>
@@ -254,17 +228,12 @@
           <div class="card">
             <div class="card-header">
               <h2>Current Stock Levels</h2>
-              <div class="filter-bar">
-                <input
-                  type="text"
-                  class="search-box"
-                  id="searchStock"
-                  placeholder="🔍 Search product…"
-                />
-                <button class="btn btn-sm btn-excel" onclick="exportStock()">
-                  ⬇️ Export Excel
-                </button>
-              </div>
+              <input
+                type="text"
+                class="search-box"
+                id="searchStock"
+                placeholder="🔍 Search product…"
+              />
             </div>
             <div class="table-wrap" id="stockTable"></div>
           </div>
@@ -280,9 +249,6 @@
                 <span>→</span>
                 <input type="date" id="rpTo" />
                 <button class="btn btn-sm" onclick="loadReports()">Generate</button>
-                <button class="btn btn-sm btn-excel" onclick="exportReports()">
-                  ⬇️ Export Excel
-                </button>
               </div>
             </div>
             <div class="table-wrap" id="reportTable"></div>

@@ -769,13 +769,10 @@ function exportExcel(rows, filename) {
 /* ── EXPORT PURCHASES ───────────────────────────────────── */
 async function exportPurchases() {
   const from = document.getElementById("puFilterFrom").value;
-  const to = document.getElementById("puFilterTo").value;
+  const to   = document.getElementById("puFilterTo").value;
   const data = await api(`/purchases?from=${from}&to=${to}`);
-  if (!data.length) {
-    toast("No data to export", "warn");
-    return;
-  }
-  const rows = data.map((r) => ({
+  if (!data.length) { toast("No data to export", "warn"); return; }
+  const rows = data.map(r => ({
     Date: r.date,
     Product: r.product_name,
     Unit: r.unit,
@@ -791,13 +788,10 @@ async function exportPurchases() {
 /* ── EXPORT SALES ───────────────────────────────────────── */
 async function exportSales() {
   const from = document.getElementById("saFilterFrom").value;
-  const to = document.getElementById("saFilterTo").value;
+  const to   = document.getElementById("saFilterTo").value;
   const data = await api(`/sales?from=${from}&to=${to}`);
-  if (!data.length) {
-    toast("No data to export", "warn");
-    return;
-  }
-  const rows = data.map((r) => ({
+  if (!data.length) { toast("No data to export", "warn"); return; }
+  const rows = data.map(r => ({
     Date: r.date,
     Product: r.product_name,
     Unit: r.unit,
@@ -813,19 +807,15 @@ async function exportSales() {
 /* ── EXPORT STOCK ───────────────────────────────────────── */
 async function exportStock() {
   const data = await api("/stock");
-  if (!data.length) {
-    toast("No data to export", "warn");
-    return;
-  }
-  const rows = data.map((r) => ({
+  if (!data.length) { toast("No data to export", "warn"); return; }
+  const rows = data.map(r => ({
     Product: r.name,
     Unit: r.unit,
     Purchased: r.total_purchased,
     Sold: r.total_sold,
     Remaining: r.stock_remaining,
     "Total Cost Purchased": r.total_cost_purchased,
-    Status:
-      r.stock_remaining <= 0 ? "Out of stock" : r.stock_remaining < 5 ? "Low stock" : "In stock",
+    Status: r.stock_remaining <= 0 ? "Out of stock" : r.stock_remaining < 5 ? "Low stock" : "In stock",
   }));
   exportExcel(rows, `stock_${today()}.xlsx`);
   toast("📥 Stock exported!");
@@ -836,20 +826,15 @@ let _lastReportData = null; // populated by loadReports
 
 async function exportReports() {
   const from = document.getElementById("rpFrom").value;
-  const to = document.getElementById("rpTo").value;
+  const to   = document.getElementById("rpTo").value;
   const [daily, purchases] = await Promise.all([
     api(`/stats/daily-sales?from=${from}&to=${to}`),
     api(`/purchases?from=${from}&to=${to}`),
   ]);
-  if (!daily.length) {
-    toast("No data to export", "warn");
-    return;
-  }
+  if (!daily.length) { toast("No data to export", "warn"); return; }
   const costMap = {};
-  purchases.forEach((p) => {
-    costMap[p.date] = (costMap[p.date] || 0) + p.total_cost;
-  });
-  const rows = daily.map((r) => ({
+  purchases.forEach(p => { costMap[p.date] = (costMap[p.date] || 0) + p.total_cost; });
+  const rows = daily.map(r => ({
     Date: r.date,
     Transactions: r.transactions,
     "Units Sold": r.units_sold,
@@ -863,28 +848,12 @@ async function exportReports() {
 
 /* ── IMPORT TEMPLATE DOWNLOADS ──────────────────────────── */
 function downloadPurchaseTemplate() {
-  const rows = [
-    {
-      product_name: "Example Product",
-      date: today(),
-      quantity: 10,
-      unit_cost: 5.5,
-      supplier: "Supplier A",
-    },
-  ];
+  const rows = [{ product_name: "Example Product", date: today(), quantity: 10, unit_cost: 5.5, supplier: "Supplier A" }];
   exportExcel(rows, "purchase_template.xlsx");
 }
 
 function downloadSaleTemplate() {
-  const rows = [
-    {
-      product_name: "Example Product",
-      date: today(),
-      quantity: 5,
-      unit_price: 12.0,
-      client: "Client A",
-    },
-  ];
+  const rows = [{ product_name: "Example Product", date: today(), quantity: 5, unit_price: 12.0, client: "Client A" }];
   exportExcel(rows, "sale_template.xlsx");
 }
 
@@ -895,29 +864,20 @@ async function importPurchases(input) {
   const file = input.files[0];
   if (!file) return;
   const data = await readExcelFile(file);
-  if (!data.length) {
-    resultEl.innerHTML = `<p class="import-error">❌ Empty file.</p>`;
-    return;
-  }
+  if (!data.length) { resultEl.innerHTML = `<p class="import-error">❌ Empty file.</p>`; return; }
 
   await loadProducts();
   const productMap = {};
-  products.forEach((p) => {
-    productMap[p.name.toLowerCase().trim()] = p.id;
-  });
+  products.forEach(p => { productMap[p.name.toLowerCase().trim()] = p.id; });
 
-  let ok = 0,
-    errors = [];
+  let ok = 0, errors = [];
   resultEl.innerHTML = `<p class="import-progress">⏳ Importing 0 / ${data.length}…</p>`;
 
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
     const pName = String(row["product_name"] || row["Product"] || "").trim();
     const pid = productMap[pName.toLowerCase()];
-    if (!pid) {
-      errors.push(`Row ${i + 2}: product "${pName}" not found`);
-      continue;
-    }
+    if (!pid) { errors.push(`Row ${i + 2}: product "${pName}" not found`); continue; }
     const date = formatExcelDate(row["date"] || row["Date"]);
     const quantity = parseFloat(row["quantity"] || row["Quantity"]);
     const unit_cost = parseFloat(row["unit_cost"] || row["Unit Cost"]);
@@ -952,29 +912,20 @@ async function importSales(input) {
   const file = input.files[0];
   if (!file) return;
   const data = await readExcelFile(file);
-  if (!data.length) {
-    resultEl.innerHTML = `<p class="import-error">❌ Empty file.</p>`;
-    return;
-  }
+  if (!data.length) { resultEl.innerHTML = `<p class="import-error">❌ Empty file.</p>`; return; }
 
   await loadProducts();
   const productMap = {};
-  products.forEach((p) => {
-    productMap[p.name.toLowerCase().trim()] = p.id;
-  });
+  products.forEach(p => { productMap[p.name.toLowerCase().trim()] = p.id; });
 
-  let ok = 0,
-    errors = [];
+  let ok = 0, errors = [];
   resultEl.innerHTML = `<p class="import-progress">⏳ Importing 0 / ${data.length}…</p>`;
 
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
     const pName = String(row["product_name"] || row["Product"] || "").trim();
     const pid = productMap[pName.toLowerCase()];
-    if (!pid) {
-      errors.push(`Row ${i + 2}: product "${pName}" not found`);
-      continue;
-    }
+    if (!pid) { errors.push(`Row ${i + 2}: product "${pName}" not found`); continue; }
     const date = formatExcelDate(row["date"] || row["Date"]);
     const quantity = parseFloat(row["quantity"] || row["Quantity"]);
     const unit_price = parseFloat(row["unit_price"] || row["Unit Price"]);
@@ -1029,7 +980,7 @@ function formatExcelDate(val) {
 function showImportResult(el, ok, errors) {
   let html = `<p class="import-ok">✅ ${ok} row(s) imported successfully.</p>`;
   if (errors.length) {
-    html += `<details class="import-errors"><summary>⚠️ ${errors.length} error(s)</summary><ul>${errors.map((e) => `<li>${e}</li>`).join("")}</ul></details>`;
+    html += `<details class="import-errors"><summary>⚠️ ${errors.length} error(s)</summary><ul>${errors.map(e => `<li>${e}</li>`).join("")}</ul></details>`;
   }
   el.innerHTML = html;
 }
