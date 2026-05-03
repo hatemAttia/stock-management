@@ -292,6 +292,59 @@ app.get("/api/stats/dashboard", async (req, res) => {
   });
 });
 
+// ─── PRODUCT PROFITABILITY DETAIL ────────────────────────
+app.get("/api/stats/product-profit", async (req, res) => {
+  const { from, to } = req.query;
+
+  // Sales in period (for revenue)
+  const saleFilter = {};
+  if (from || to) {
+    saleFilter.date = {};
+    if (from) saleFilter.date.$gte = from;
+    if (to) saleFilter.date.$lte = to;
+  }
+
+  const [products, allPurchases, periodSales] = await Promise.all([
+    Product.find().lean(),
+    Purchase.find().lean(), // all purchases (for avg cost)
+    Sale.find(saleFilter).lean(),
+  ]);
+
+  const result = products
+    .map((p) => {
+      const pid = String(p._id);
+
+      // All purchases for this product → compute weighted average unit cost
+      const prodPurchases = allPurchases.filter((x) => String(x.product_id) === pid);
+      const totalPurchasedQty = prodPurchases.reduce((s, x) => s + x.quantity, 0);
+      const totalPurchasedCost = prodPurchases.reduce((s, x) => s + x.total_cost, 0);
+      const avgUnitCost = totalPurchasedQty > 0 ? totalPurchasedCost / totalPurchasedQty : 0;
+
+      // Sales in the selected period for this product
+      const prodSales = periodSales.filter((x) => String(x.product_id) === pid);
+      const unitsSold = prodSales.reduce((s, x) => s + x.quantity, 0);
+      const revenue = prodSales.reduce((s, x) => s + x.total_price, 0);
+      const costOfSold = unitsSold * avgUnitCost;
+      const grossProfit = revenue - costOfSold;
+      const margin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
+
+      return {
+        name: p.name,
+        unit: p.unit,
+        units_sold: unitsSold,
+        avg_unit_cost: avgUnitCost,
+        cost_of_sold: costOfSold,
+        revenue,
+        gross_profit: grossProfit,
+        margin,
+      };
+    })
+    .filter((r) => r.units_sold > 0)
+    .sort((a, b) => b.gross_profit - a.gross_profit);
+
+  res.json(result);
+});
+
 // ─── CATCH-ALL ────────────────────────────────────────────
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
