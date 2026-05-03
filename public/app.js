@@ -180,7 +180,7 @@ function renderProductTable(data) {
       label: "",
       nosort: true,
       render: (r) =>
-        `<button class="btn btn-danger btn-sm" onclick="deleteProduct(${r.id})">🗑</button>`,
+        `<button class="btn btn-danger btn-sm" onclick="deleteProduct('${r.id}')">🗑</button>`,
     },
   ]);
 }
@@ -283,7 +283,7 @@ function renderPurchaseTable(data) {
         label: "",
         nosort: true,
         render: (r) =>
-          `<button class="btn btn-danger btn-sm" onclick="deletePurchase(${r.id})">🗑</button>`,
+          `<button class="btn btn-danger btn-sm" onclick="deletePurchase('${r.id}')">🗑</button>`,
       },
     ],
     footer,
@@ -382,7 +382,7 @@ function renderSaleTable(data) {
         label: "",
         nosort: true,
         render: (r) =>
-          `<button class="btn btn-danger btn-sm" onclick="deleteSale(${r.id})">🗑</button>`,
+          `<button class="btn btn-danger btn-sm" onclick="deleteSale('${r.id}')">🗑</button>`,
       },
     ],
     footer,
@@ -578,6 +578,7 @@ async function loadReports() {
 
   renderReportTable(daily, costMap);
   buildReportChart(daily, costMap);
+  loadProductProfitTable(fromEl.value, toEl.value);
 }
 
 function renderReportTable(daily, costMap) {
@@ -632,6 +633,95 @@ function renderReportTable(daily, costMap) {
     ],
     footer,
   );
+}
+
+/* ─── PRODUCT PROFITABILITY ─────────────────────────────── */
+async function loadProductProfitTable(from, to) {
+  const data = await api(`/stats/product-profit?from=${from}&to=${to}`);
+  renderProductProfitTable(data);
+}
+
+function renderProductProfitTable(data) {
+  const el = document.getElementById("productProfitTable");
+  if (!data || !data.length) {
+    el.innerHTML = emptyState("No sales in this period.");
+    return;
+  }
+  const totRevenue = data.reduce((s, r) => s + r.revenue, 0);
+  const totCost = data.reduce((s, r) => s + r.cost_of_sold, 0);
+  const totProfit = data.reduce((s, r) => s + r.gross_profit, 0);
+  const totUnits = data.reduce((s, r) => s + r.units_sold, 0);
+  const avgMargin = totRevenue > 0 ? (totProfit / totRevenue) * 100 : 0;
+
+  const footer = () => `<tfoot><tr style="background:var(--surface2);font-weight:700">
+    <td style="padding:10px 16px">TOTAL</td>
+    <td></td>
+    <td style="padding:10px 16px">${totUnits}</td>
+    <td></td>
+    <td style="padding:10px 16px;color:var(--danger)">${fmt(totCost)}</td>
+    <td style="padding:10px 16px;color:var(--success)">${fmt(totRevenue)}</td>
+    <td style="padding:10px 16px;color:${totProfit >= 0 ? "var(--success)" : "var(--danger)"}">${fmt(totProfit)}</td>
+    <td style="padding:10px 16px">${avgMargin.toFixed(1)}%</td>
+  </tr></tfoot>`;
+
+  makeSortableTable(
+    "productProfitTable",
+    data,
+    [
+      { key: "name", label: "Product", render: (r) => `<strong>${r.name}</strong>` },
+      { key: "unit", label: "Unit" },
+      { key: "units_sold", label: "Qty Sold" },
+      { key: "avg_unit_cost", label: "Avg Cost/Unit", render: (r) => fmt(r.avg_unit_cost) },
+      {
+        key: "cost_of_sold",
+        label: "Total Cost",
+        render: (r) => `<span style="color:var(--danger)">${fmt(r.cost_of_sold)}</span>`,
+      },
+      {
+        key: "revenue",
+        label: "Revenue",
+        render: (r) => `<span style="color:var(--success)">${fmt(r.revenue)}</span>`,
+      },
+      {
+        key: "gross_profit",
+        label: "Gross Profit",
+        render: (r) =>
+          `<span style="color:${r.gross_profit >= 0 ? "var(--success)" : "var(--danger)"};font-weight:700">${fmt(r.gross_profit)}</span>`,
+      },
+      {
+        key: "margin",
+        label: "Margin %",
+        render: (r) => {
+          const cls =
+            r.margin >= 30 ? "badge-green" : r.margin >= 10 ? "badge-yellow" : "badge-red";
+          return `<span class="badge ${cls}">${r.margin.toFixed(1)}%</span>`;
+        },
+      },
+    ],
+    footer,
+  );
+}
+
+async function exportProductProfit() {
+  const from = document.getElementById("rpFrom").value;
+  const to = document.getElementById("rpTo").value;
+  const data = await api(`/stats/product-profit?from=${from}&to=${to}`);
+  if (!data.length) {
+    toast("No data to export", "warn");
+    return;
+  }
+  const rows = data.map((r) => ({
+    Product: r.name,
+    Unit: r.unit,
+    "Qty Sold": r.units_sold,
+    "Avg Cost/Unit": +r.avg_unit_cost.toFixed(4),
+    "Total Cost": +r.cost_of_sold.toFixed(2),
+    Revenue: +r.revenue.toFixed(2),
+    "Gross Profit": +r.gross_profit.toFixed(2),
+    "Margin %": +r.margin.toFixed(2),
+  }));
+  exportExcel(rows, `product_profit_${from}_${to}.xlsx`);
+  toast("📥 Product profitability exported!");
 }
 
 /* ─── CHARTS ────────────────────────────────────────────── */

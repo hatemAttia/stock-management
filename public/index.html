@@ -291,6 +291,17 @@
             <div class="card-header"><h2>Revenue vs Cost (daily)</h2></div>
             <canvas id="chartReport"></canvas>
           </div>
+
+          <!-- ── Product Profitability Detail ── -->
+          <div class="card">
+            <div class="card-header">
+              <h2>🏷️ Product Cost & Profitability Detail</h2>
+              <button class="btn btn-sm btn-excel" onclick="exportProductProfit()">
+                ⬇️ Export Excel
+              </button>
+            </div>
+            <div class="table-wrap" id="productProfitTable"></div>
+          </div>
         </section>
       </main>
     </div>
